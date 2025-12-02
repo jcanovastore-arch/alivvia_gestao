@@ -1,21 +1,24 @@
 import streamlit as st
-from ui import upload, calculo, pre_oc, oc_oficial, historico
+from ui.upload import app as upload_app
+from ui.calculo import app as calculo_app
+from ui.pre_oc import app as pre_oc_app
+from ui.oc_oficial import app as oc_oficial_app
+from ui.historico import app as historico_app
 
-st.set_page_config(page_title="Alivvia Gestão", layout="wide")
+st.title("🚀 Alivvia Gestão — Sistema Oficial")
 
-st.sidebar.title("📦 Alivvia Gestão")
-pagina = st.sidebar.radio(
+menu = st.sidebar.selectbox(
     "Menu",
     ["Upload", "Cálculo", "Pré-OC", "OC Oficial", "Histórico"]
 )
 
-if pagina == "Upload":
-    upload.render()
-elif pagina == "Cálculo":
-    calculo.render()
-elif pagina == "Pré-OC":
-    pre_oc.render()
-elif pagina == "OC Oficial":
-    oc_oficial.render()
-elif pagina == "Historico":
-    historico.render()
+if menu == "Upload":
+    upload_app()
+elif menu == "Cálculo":
+    calculo_app()
+elif menu == "Pré-OC":
+    pre_oc_app()
+elif menu == "OC Oficial":
+    oc_oficial_app()
+elif menu == "Histórico":
+    historico_app()

@@ -1,41 +1,42 @@
 import streamlit as st
-import pandas as pd
-from engine.calculo import get_vendas_60d  # você já tem isso no sistema
+from data.storage import load_dataframe
 
 def app():
+    st.title("📦 Alocação de Estoque entre Empresas")
 
-    st.title("📦 Alocação por Vendas 60d")
+    st.write("Distribui o estoque entre Alivvia e JCA com base nas vendas dos últimos 60 dias.")
 
-    st.write("Informe o SKU e a quantidade total disponível para dividir entre Alivvia e JCA.")
+    # Carrega informações dos uploads
+    vendas = load_dataframe("vendas_60d")
+    if vendas is None:
+        st.warning("Faça o upload primeiro.")
+        return
 
-    sku = st.text_input("SKU")
-    qtd_total = st.number_input("Quantidade total disponível", min_value=0, step=1)
+    # Campo de SKU
+    sku = st.text_input("SKU:")
+    qtd = st.number_input("Quantidade total recebida:", min_value=1)
 
     if st.button("Calcular Alocação"):
+        df = vendas[vendas["SKU"] == sku]
 
-        # Obtém vendas 60d do sistema atual
-        vendas = get_vendas_60d()
-
-        if sku not in vendas.index:
+        if df.empty:
             st.error("SKU não encontrado nos uploads.")
             return
-        
-        v_alivvia = vendas.loc[sku, "vendas_alivvia_60d"]
-        v_jca = vendas.loc[sku, "vendas_jca_60d"]
 
-        total_vendas = v_alivvia + v_jca
+        alivvia = df.iloc[0]["Vendas_Alivvia"]
+        jca = df.iloc[0]["Vendas_JCA"]
+        total = alivvia + jca
 
-        if total_vendas == 0:
-            st.warning("Esse SKU não teve vendas nos últimos 60 dias.")
+        if total == 0:
+            st.error("Este SKU não teve vendas no período.")
             return
 
-        # cálculo proporcional
-        prop_alivvia = v_alivvia / total_vendas
-        prop_jca = v_jca / total_vendas
+        prop_alivvia = alivvia / total
+        prop_jca = jca / total
 
-        aloc_alivvia = round(qtd_total * prop_alivvia)
-        aloc_jca = qtd_total - aloc_alivvia
+        aloc_alivvia = round(qtd * prop_alivvia)
+        aloc_jca = qtd - aloc_alivvia
 
-        st.subheader("📊 Resultado da Alocação")
-        st.write(f"**Alivvia:** {aloc_alivvia}")
-        st.write(f"**JCA:** {aloc_jca}")
+        st.success("Alocação realizada!")
+        st.metric("Alivvia", aloc_alivvia)
+        st.metric("JCA", aloc_jca)
